@@ -1,6 +1,6 @@
 # Validation
 
-Version 0.3.0 · 2026-10-19
+Version 0.3.1 · 2026-10-19
 
 ## Automated tests
 
@@ -8,7 +8,7 @@ Version 0.3.0 · 2026-10-19
 python -m unittest discover -s tests -v
 ```
 
-26 integration tests passed on Windows with Python 3.10. They exercise:
+27 integration tests passed on Windows with Python 3.10. They exercise:
 
 - Exact message, Unicode, code and whitespace preservation.
 - Actual attachment and generated-file copying, including extensionless files.
@@ -24,6 +24,8 @@ python -m unittest discover -s tests -v
 - Previous memory-export exclusion, subagent filtering, malformed-record warnings, overwrite protection, and tamper detection.
 
 - Nested migration packaging: two isolated chats, correct file associations, shared preference propagation, refreshed per-chat memory notes, readable routing plan, inner ZIP integrity and per-file hashes.
+
+- Complete-directory backup: every output file is included byte-for-byte, including originals and both portable ZIPs; the backup excludes itself and refreshes after memory edits.
 
 ## Independent review
 
