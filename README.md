@@ -6,7 +6,14 @@ Archive conversations together with their uploaded attachments and generated fil
 
 ## Use it in a chat
 
-Copy the `conversation-memory` folder to `~/.codex/skills/conversation-memory/`, then open a new chat and say:
+Send this to Codex to install the skill directly from GitHub:
+
+```text
+Install the conversation-memory skill from:
+https://github.com/xuyuchen231-stack/Conversation-Memory/tree/main/conversation-memory
+```
+
+Then use it in the old conversation:
 
 ```text
 Use $conversation-memory to archive these conversations with their uploaded attachments and generated files. Organize them by project, capture my preferences and corrections with source references, and create a new-chat handoff package.
@@ -53,7 +60,7 @@ python conversation-memory/scripts/build_archive.py --sessions-dir /path/to/.cod
 On Windows, for example:
 
 ```powershell
-python .\conversation-memory\scriptsuild_archive.py --sessions-dir "$env:USERPROFILE\.codex\sessions" --out "D:\Memory\snapshot-001"
+python ./conversation-memory/scripts/build_archive.py --sessions-dir "$env:USERPROFILE\.codex\sessions" --out "D:\Memory\snapshot-001"
 ```
 
 The directory scan skips subagent sessions. You can also pass one or more JSONL paths directly to select individual conversations.
