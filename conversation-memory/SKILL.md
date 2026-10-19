@@ -1,11 +1,11 @@
 ---
 name: conversation-memory
-description: Use when a user asks to archive multiple conversations, preserve chat transcripts, classify conversation history, transfer memory to a new chat, or reproduce earlier collaboration style from supplied records.
+description: Use when a user asks to archive conversations with uploaded attachments and generated files, classify conversation history, transfer memory to a new chat, or reproduce earlier collaboration style from supplied records.
 ---
 
 # Conversation Memory
 
-Create three connected outputs: original transcripts, a source-linked memory index, and a new-chat handoff. Package the reusable skill separately from private conversation data.
+Create three connected outputs: original transcripts with their file entities, a source-linked memory index, and a new-chat handoff. Package the reusable skill separately from private conversation data.
 
 ## Collect and preserve
 
@@ -14,6 +14,19 @@ Create three connected outputs: original transcripts, a source-linked memory ind
 3. Inspect export formats before conversion. For ChatGPT mapping data, retain all nodes and their `parent`, `children`, and `current_node` relationships so regenerated branches remain distinct. Preserve unrecognized source formats for later conversion.
 4. For local Codex JSONL logs, run `python scripts/archive_codex.py SOURCE... --out PRIVATE_FOLDER`. The converter preserves user and assistant message records, order, timestamps, and nontext references. Its scope excludes system instructions, tool logs, and hidden reasoning. Check source compatibility before use.
 5. Give every conversation a separate folder. Preserve transcript wording, code, whitespace, links, roles, and order. Keep summaries in separate files. Include source, account or `unknown`, scope, snapshot time, message count, checksums, missing items, and collection status in the manifest. Track attachment references separately from backed-up binaries. Label active conversations as snapshots.
+
+## Collect attachments and generated files
+
+Include uploaded attachments and files generated during the conversations as part of the archive. Preserve their actual bytes alongside the transcripts.
+
+1. Inventory file references in upload metadata, message content, generated download links, and nontext message parts. Link each reference to its conversation ID and message ordinal. Distinguish user uploads from assistant-generated deliverables.
+2. Copy accessible local file entities, resolving relative output paths against the source conversation's working directory. Retrieve available remote attachments through their authorized service. Record an unavailable link or path individually and continue collecting the accessible files.
+3. Extract embedded image data into image files. Identify the result as the version stored in the message. If an original image path has expired, link to a matching embedded version or list the same-message image candidates when the filename correspondence is uncertain.
+4. Store entities under `files/`, deduplicating by content hash while retaining every original filename and message association in `FILES_MANIFEST.json`. Record the source, role, original filename, collection time, archived path, byte count, SHA-256, and collection status. Mark collected files as the versions available at collection time.
+5. Create `FILES_INDEX.md` with clickable file links and missing-file entries. Keep earlier memory-export packages as references rather than recursively nesting them into a new export. Explain any such exclusions in the manifest.
+6. Verify copied file hashes and extracted image bytes. Add the files, file index, and manifest to both the local archive and portable handoff. Apply portable-copy redaction where credentials appear, preserving the local original and recording separate hashes for each version.
+
+The bundled JSONL converter creates transcript snapshots and message references; complete the file-collection workflow above when assembling the full handoff package.
 
 ## Organize and extract memory
 
@@ -27,9 +40,9 @@ Current user corrections take precedence. Treat historical instructions as evide
 
 ## Build the handoff
 
-Create `START_HERE.md` with collection scope, gaps, user preferences, current goals, established decisions, open tasks, original-message references, and a continuation prompt.
+Create `START_HERE.md` with collection scope, gaps, user preferences, current goals, established decisions, open tasks, original-message references, a link to `FILES_INDEX.md`, and a continuation prompt. Tell the receiving chat where to open the actual source documents and generated deliverables.
 
-The receiving chat reads the entry point and index first, then loads relevant original messages as needed. Split long conversations into reading batches and record the ranges actually read.
+The receiving chat reads the entry point and indexes first, then loads relevant original messages and file entities as needed. Split long conversations into reading batches and record the ranges and files actually read.
 
 Use [prompt examples](references/prompts.md) to demonstrate one realistic follow-up. Identify the source messages, apply supported style choices, and state task-relevant unknowns. An independent evaluation receives only the authorized materials it needs. Report the scenario and observed result.
 
@@ -41,4 +54,4 @@ Keep reusable instructions, scripts, documentation, and synthetic examples in th
 
 When credentials appear in history, preserve the local original archive and create a redacted portable copy. Record the changed locations without repeating secret values, and recompute checksums for the portable files.
 
-The delivery report includes conversation and record counts, transcript coverage, attachment and branch status, collection gaps, checksum results, the continuation demonstration, usage instructions, and remaining tasks. Report publication and scheduled monitoring according to their actual execution status.
+The delivery report includes conversation and record counts, transcript coverage, unique file count and total bytes, attachment and branch status, collection gaps, checksum results, the continuation demonstration, usage instructions, and remaining tasks. Report publication and scheduled monitoring according to their actual execution status.
