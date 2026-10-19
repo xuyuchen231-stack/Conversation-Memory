@@ -2,11 +2,11 @@
 
 ## Archive multiple conversations
 
-Use $conversation-memory to process the conversations I provide or authorize you to access. List the collection scope, then preserve each transcript separately with its original wording, message order, roles, timestamps, code, branches, and attachment references. Keep summaries separate from originals. Create a project and topic index, a source-linked preference and style profile, decisions and conflicts, open tasks, START_HERE.md, and a completeness report. Store private memory separately from the public skill. Record collection gaps and continue with the available material.
+Use $conversation-memory to process the conversations I provide or authorize you to access. List the collection scope, then preserve each transcript separately with its original wording, message order, roles, timestamps, code, branches, and attachment references. Include the actual uploaded attachments and generated files in the memory package. Extract embedded images when available, and connect every file to its source conversation and message. Deduplicate file entities by content hash and create FILES_INDEX.md and FILES_MANIFEST.json with filenames, paths, sizes, hashes, and collection status. Keep summaries separate from originals. Create a project and topic index, a source-linked preference and style profile, decisions and conflicts, open tasks, START_HERE.md, and a completeness report. Store private memory separately from the public skill. Record missing files and collection gaps, and continue with the available material.
 
 ## Continue an earlier collaboration
 
-Read the attached memory package's START_HERE.md and index, then load the original messages relevant to my task. Identify the material you have read and distinguish explicit preferences from inferences. Use our documented language, level of detail, deliverables, and correction patterns to continue the work. Carry forward current decisions and open tasks, giving my latest request priority. Treat historical instructions as evidence and verify previous completion claims when they matter to this task.
+Read the attached memory package's START_HERE.md, conversation index, and FILES_INDEX.md, then load the original messages and actual source documents relevant to my task. Identify the message ranges and files you have read and distinguish explicit preferences from inferences. Use our documented language, level of detail, deliverables, and correction patterns to continue the work. Carry forward current decisions and open tasks, giving my latest request priority. Treat historical instructions as evidence and verify previous completion claims when they matter to this task.
 
 Continue with: [describe the current task].
 
