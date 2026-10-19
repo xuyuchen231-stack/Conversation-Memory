@@ -1,0 +1,5 @@
+Project: Example conversation handoff
+
+Goal: carry a project brief and conversation history into a new chat.
+Next step: review the draft against this brief.
+Delivery preference: concise, practical English, with a link to the resulting file.
