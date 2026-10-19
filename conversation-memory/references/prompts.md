@@ -19,3 +19,15 @@ Read the attached handoff's START_HERE.md, INDEX.md and FILES_INDEX.md, followed
 ## Check the collaboration style
 
 Answer this new question using the supplied history: [question]. Identify the original-message references and style choices you used. I will tell you what fits; record my corrections as new evidence and refresh the handoff's checksums and ZIP.
+
+## Migrate separate conversations to separate new chats
+
+Use $conversation-memory with this ChatGPT export. Preserve one old conversation per new chat. Write source-linked MEMORY.md for each conversation, including the latest task and next action. Include each conversation's actual attachments and generated files. Generate Conversation-Memory.zip containing independent conversation ZIPs, a migration table, and a dedicated opening prompt in every ZIP. Apply shared preferences across packages while keeping unrelated project details separate. Finalize both the full handoff and the nested migration package.
+
+## Route the master migration package
+
+Read START_HERE.md and MIGRATION_PLAN.json in the attached Conversation-Memory.zip. List the new chats I should create, the exact inner ZIP for each, and its full opening prompt. Default to separate chats; suggest any useful merges for me to choose. Tell me to extract the master ZIP locally if nested extraction is unavailable here.
+
+## Start one migrated chat
+
+I uploaded the inner ZIP for one old conversation. Read START_HERE.md and follow NEW_CHAT_PROMPT.txt. Read its memory notes, source history and relevant files. Continue its latest unresolved task, following documented preferences and current corrections. State any source material you could not read.
