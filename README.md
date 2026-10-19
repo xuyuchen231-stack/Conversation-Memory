@@ -1,6 +1,6 @@
 # Conversation Memory
 
-**Version 0.2.0 · Python 3.10+ · Standard library only**
+**Version 0.3.0 · Python 3.10+ · Standard library only**
 
 Archive conversations together with their uploaded attachments and generated files. Build an indexed memory package that another chat can read to continue your work and follow your documented preferences.
 
@@ -21,10 +21,18 @@ Use $conversation-memory to archive these conversations with their uploaded atta
 
 Provide the conversations, local session files, or an extracted ChatGPT export. The skill collects records and files, prepares a style and task handoff, and verifies the package.
 
-In the receiving chat, upload `handoff.zip` and say:
+For **multiple separate new chats**, upload `Conversation-Memory.zip` to the first receiving chat and say:
 
 ```text
-Read START_HERE.md, INDEX.md and FILES_INDEX.md. Open the original messages and files relevant to my task, follow my documented preferences and latest corrections, and continue with: [your task].
+Read START_HERE.md and MIGRATION_PLAN.json. Tell me which new chats to create, the exact ZIP to upload to each, and each full opening prompt. Keep old conversations separate unless I choose a suggested merge.
+```
+
+Extract the master ZIP on your computer. Manually create each listed chat, upload its `conversations/Sxxx.zip`, and paste the included `NEW_CHAT_PROMPT.txt`. Every inner ZIP works independently. If nested ZIPs cannot be opened in the chat, upload the extracted inner ZIP directly.
+
+For **one chat accessing the whole archive**, upload `handoff.zip` and say:
+
+```text
+Read START_HERE.md, INDEX.md and FILES_INDEX.md. Read the source messages and files relevant to my task, follow my documented preferences and latest corrections, and continue with: [your task].
 ```
 
 ## What is included
@@ -36,7 +44,9 @@ Read START_HERE.md, INDEX.md and FILES_INDEX.md. Open the original messages and 
 - ChatGPT mapping nodes and parent/children relationships, preserving regenerated branches.
 - Separate local originals and a portable handoff with known credential patterns redacted.
 - Missing-file reports and bounded searches for relocated file candidates.
-- A verifier and a finalizer for agent-authored memory notes.
+- One independent ZIP per conversation, containing its own messages, associated files, memory notes, and opening prompt.
+- A master migration plan listing which chat to create and which ZIP and prompt to use.
+- A verifier and a finalizer that refreshes both the full handoff and nested migration ZIPs.
 
 ## Try the included example
 
@@ -102,10 +112,19 @@ new-memory/
       transcript.md
       manifest.json
     files/content-hash/filename.ext
-  handoff.zip                Upload this to the receiving chat
+  handoff.zip                All conversations for one receiving chat
+  Conversation-Memory.zip    Master package for multiple new chats:
+    START_HERE.md
+    MIGRATION_PLAN.md
+    MIGRATION_PLAN.json
+    SHA256SUMS.json
+    conversations/S001.zip   Independent package for the first chat
+    conversations/S002.zip   Independent package for the second chat
 ```
 
-The skill adds source-linked preferences, project decisions, open tasks, and relevant collection gaps to the handoff after reading the transcripts. It then refreshes the checksums and ZIP:
+Each inner ZIP includes `START_HERE.md`, `NEW_CHAT_PROMPT.txt`, its `archive/Sxxx/` folder, its associated `files/`, a scoped file inventory, and checksums. The skill writes `archive/Sxxx/MEMORY.md` for that conversation after reading its history. Shared preferences are copied into every inner ZIP when available; unrelated project notes stay separate. The master plan defaults to one old conversation per new chat.
+
+The skill adds source-linked preferences, project decisions, open tasks, and relevant collection gaps, then refreshes checksums and both kinds of ZIP:
 
 ```sh
 python conversation-memory/scripts/build_archive.py --finalize /path/to/new-memory
