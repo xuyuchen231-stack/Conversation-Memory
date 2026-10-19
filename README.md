@@ -1,29 +1,64 @@
 # Conversation Memory
 
-试用版：逐条归档对话，建立分类索引与有证据的风格档案，让新聊天接续工作。
+Archive conversations, organize them by project, and carry context into a new chat.
 
-## 使用
+Conversation Memory keeps original transcripts alongside a searchable index, an evidence-based style profile, decisions, and open tasks. A handoff package gives the next chat a clear starting point and references to the relevant history.
 
-将 `conversation-memory` 文件夹安装至使用环境的技能目录。Codex 本机可放入 `~/.codex/skills/`；重新打开聊天后确认技能是否可发现。调用：
+## Features
 
-`请使用 $conversation-memory，把这些对话完整归档并生成新聊天接续包。`
+- Preserve individual conversations, message order, code, timestamps, and attachment references.
+- Organize history by project and topic while keeping original transcripts intact.
+- Capture preferences, corrections, decisions, and working patterns with source references.
+- Generate a `START_HERE.md` entry point and reusable continuation prompts.
+- Export local Codex conversation logs with file hashes and per-session manifests.
+- Keep private memory packages separate from the reusable skill.
 
-不支持技能安装的聊天：上传私人接续包，粘贴 `conversation-memory/references/prompts.md` 内的接续提示词。
+## Install
 
-本地 Codex 日志转换：
+Copy the `conversation-memory` folder into your skills directory. For a local Codex installation:
+
+```text
+~/.codex/skills/conversation-memory/
+```
+
+Open a new chat and invoke the skill:
+
+```text
+Use $conversation-memory to archive these conversations and create a new-chat handoff package.
+```
+
+## Archive local Codex logs
 
 ```sh
 python conversation-memory/scripts/archive_codex.py /path/to/session.jsonl --out /path/to/private-memory
 ```
 
-转换器仅处理实际存在的 user/assistant message 记录。保留消息原始记录与规范化内容，记录源文件哈希；不备份系统指令、隐藏推理或工具日志。附件实体需要单独备份。活动聊天仅为截止时快照。
+Pass multiple source files to archive several sessions. Each session receives its own transcript, message records, and manifest. The converter handles local Codex JSONL logs; the skill also guides collection from accessible conversations and account exports.
 
-ChatGPT 批量记录需提供目标账号导出文件或可访问的完整记录；当前转换器不直接解析 ChatGPT 导出，须检查实际格式后适配。不同账号的私人链接不提供访问授权。
+## Continue in a new chat
 
-技能不会永久训练模型、自动读取其他账号、保证完全复刻风格，或自动开始后台监测。
+Upload the handoff package and use this prompt:
 
-## 发布边界
+```text
+Read START_HERE.md and the conversation index. Load the original messages relevant to my task, follow my documented preferences and corrections, and continue from the latest decisions and open tasks.
 
-公开仓库：[xuyuchen231-stack/conversation-archive](https://github.com/xuyuchen231-stack/conversation-archive)。私人归档保存在仓库之外。当前为试用版；GitHub 源码发布不表示已进入技能商店。
+My task: [describe what to continue]
+```
 
-技能格式参考：[OpenAI Skills](https://developers.openai.com/plugins/concepts/skills)。
+See [prompt examples](conversation-memory/references/prompts.md) for archiving, continuation, and style review.
+
+## Package layout
+
+```text
+START_HERE.md
+INDEX.md
+STYLE_AND_PREFERENCES.md
+PROJECTS_AND_TASKS.md
+GAPS_AND_COMPLETENESS.md
+archive/
+  session/
+    messages.source.jsonl
+    messages.json
+    transcript.md
+    manifest.json
+```
