@@ -1,0 +1,6 @@
+private-memory/
+raw/
+*.jsonl
+*.zip
+__pycache__/
+*.pyc
