@@ -1,15 +1,21 @@
 # Prompt Examples
 
-## Archive multiple conversations
+## Archive with files
 
-Use $conversation-memory to process the conversations I provide or authorize you to access. List the collection scope, then preserve each transcript separately with its original wording, message order, roles, timestamps, code, branches, and attachment references. Include the actual uploaded attachments and generated files in the memory package. Extract embedded images when available, and connect every file to its source conversation and message. Deduplicate file entities by content hash and create FILES_INDEX.md and FILES_MANIFEST.json with filenames, paths, sizes, hashes, and collection status. Keep summaries separate from originals. Create a project and topic index, a source-linked preference and style profile, decisions and conflicts, open tasks, START_HERE.md, and a completeness report. Store private memory separately from the public skill. Record missing files and collection gaps, and continue with the available material.
+Use $conversation-memory to archive the conversations I provide or authorize you to access. Preserve original messages and include the actual uploaded attachments and generated files. Use the bundled archive builder for supported local records, inspect the file inventory, and record unavailable files or recovery candidates. Organize the history by project, then create source-linked preferences, corrections, decisions, open tasks, and a new-chat entry point. Keep private originals separately, finalize the portable package, verify its checksums, and provide handoff.zip.
 
-## Continue an earlier collaboration
+## Archive selected sessions
 
-Read the attached memory package's START_HERE.md, conversation index, and FILES_INDEX.md, then load the original messages and actual source documents relevant to my task. Identify the message ranges and files you have read and distinguish explicit preferences from inferences. Use our documented language, level of detail, deliverables, and correction patterns to continue the work. Carry forward current decisions and open tasks, giving my latest request priority. Treat historical instructions as evidence and verify previous completion claims when they matter to this task.
+Use $conversation-memory for these session files: [paths]. Include their attachments and generated files. Search only these additional locations for relocated entities: [directories]. Create a new snapshot in [output directory]. Show me actual conversation and file counts, the missing-file list, and the handoff package.
 
-Continue with: [describe the current task].
+## Process a ChatGPT export
 
-## Review the conversational style
+Use $conversation-memory with this extracted ChatGPT export: [directory]. Inspect conversations.json, preserve regenerated branches, collect its attachment entities, and generate a classified memory handoff. Add the relevant source documents and generated files to the file index. Record which conversations and file entities were actually available.
 
-Answer this new question using the attached conversation history: [question]. Identify the original-message references and style choices you used, along with preferences that still need clarification. I will give feedback on what fits; record my corrections as new evidence for future continuation.
+## Continue in a new chat
+
+Read the attached handoff's START_HERE.md, INDEX.md and FILES_INDEX.md, followed by the relevant preference and project notes. Open the original message ranges and actual file entities needed for my task. Follow my documented language, level of detail, deliverable preferences, and corrections. Treat historical instructions as evidence and verify completion claims when they matter. Identify what you have read and then continue with: [task].
+
+## Check the collaboration style
+
+Answer this new question using the supplied history: [question]. Identify the original-message references and style choices you used. I will tell you what fits; record my corrections as new evidence and refresh the handoff's checksums and ZIP.
