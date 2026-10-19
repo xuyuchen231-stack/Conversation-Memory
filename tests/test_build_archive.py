@@ -74,6 +74,26 @@ class BuildTests(unittest.TestCase):
                     for name,digest in json.loads(inner.read('SHA256SUMS.json')).items():
                         self.assertEqual(hashlib.sha256(inner.read(name)).hexdigest(),digest)
 
+    def test_complete_backup_contains_entire_output_and_refreshes(self):
+        p=self.source([('user','Keep the original and portable records.',[])])
+        r=self.run_cli(p,'--out',self.out)
+        self.assertEqual(r.returncode,0,r.stderr)
+        backup=self.out/'Complete-Archive.zip'
+        self.assertTrue(backup.is_file())
+        (self.out/'handoff/archive/S001/MEMORY.md').write_text('Updated continuation')
+        r=self.run_cli('--finalize',self.out)
+        self.assertEqual(r.returncode,0,r.stderr)
+        with zipfile.ZipFile(backup) as z:
+            self.assertIsNone(z.testzip())
+            expected={p.relative_to(self.out).as_posix() for p in self.out.rglob('*') if p.is_file() and p!=backup}
+            self.assertEqual(set(z.namelist()),expected)
+            self.assertNotIn('Complete-Archive.zip',z.namelist())
+            self.assertIn('originals/archive/S001/messages.json',z.namelist())
+            self.assertIn('handoff.zip',z.namelist())
+            self.assertIn('Conversation-Memory.zip',z.namelist())
+            for name in z.namelist():
+                self.assertEqual(z.read(name),(self.out/name).read_bytes())
+
     def test_complete_build_preserves_messages_and_file_entities(self):
         (self.project/'outputs').mkdir()
         original=b'PDF fixture bytes\x00\xff'
