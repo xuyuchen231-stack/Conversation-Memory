@@ -42,6 +42,38 @@ class BuildTests(unittest.TestCase):
     def report(self):
         return json.loads((self.out/'handoff/FILES_MANIFEST.json').read_text(encoding='utf-8'))
 
+    def test_split_packages_are_independent_and_refresh_after_notes(self):
+        (self.project/'one.txt').write_text('first attachment')
+        (self.project/'two.txt').write_text('second attachment')
+        p=self.source([('user','[one](one.txt)',[])],name='first.jsonl')
+        q=self.source([('user','[two](two.txt)',[])],name='second.jsonl')
+        r=self.run_cli(p,q,'--out',self.out)
+        self.assertEqual(r.returncode,0,r.stderr)
+        self.assertTrue((self.out/'Conversation-Memory.zip').exists())
+        (self.out/'handoff/archive/S001/MEMORY.md').write_text('Only first project decision')
+        (self.out/'handoff/STYLE_AND_PREFERENCES.md').write_text('Shared explicit preference')
+        r=self.run_cli('--finalize',self.out)
+        self.assertEqual(r.returncode,0,r.stderr)
+        with zipfile.ZipFile(self.out/'Conversation-Memory.zip') as outer:
+            self.assertIsNone(outer.testzip())
+            plan=json.loads(outer.read('MIGRATION_PLAN.json'))
+            self.assertEqual(len(plan['conversations']),2)
+            self.assertEqual(plan['conversations'][0]['package'],'conversations/S001.zip')
+            for key,expected,excluded in [('S001',b'first attachment',b'second attachment'),('S002',b'second attachment',b'first attachment')]:
+                import io
+                with zipfile.ZipFile(io.BytesIO(outer.read(f'conversations/{key}.zip'))) as inner:
+                    self.assertIsNone(inner.testzip())
+                    self.assertIn('NEW_CHAT_PROMPT.txt',inner.namelist())
+                    self.assertIn('STYLE_AND_PREFERENCES.md',inner.namelist())
+                    self.assertIn(f'archive/{key}/messages.json',inner.namelist())
+                    self.assertEqual(len(json.loads(inner.read('FILES_MANIFEST.json'))['references']),1)
+                    contents=[inner.read(n) for n in inner.namelist()]
+                    self.assertIn(expected,contents)
+                    self.assertNotIn(excluded,contents)
+                    self.assertEqual(f'archive/{key}/MEMORY.md' in inner.namelist(),key=='S001')
+                    for name,digest in json.loads(inner.read('SHA256SUMS.json')).items():
+                        self.assertEqual(hashlib.sha256(inner.read(name)).hexdigest(),digest)
+
     def test_complete_build_preserves_messages_and_file_entities(self):
         (self.project/'outputs').mkdir()
         original=b'PDF fixture bytes\x00\xff'
