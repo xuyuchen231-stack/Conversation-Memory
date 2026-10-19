@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from urllib.parse import unquote, urlsplit
 import zipfile
 
-VERSION = '0.3.0'
+VERSION = '0.3.1'
 TOKEN = re.compile(r'(?:thk_live_|sk-(?:proj-)?|ghp_|github_pat_)[A-Za-z0-9_-]{16,}')
 IMAGE_EXT = {'.png','.jpg','.jpeg','.webp','.gif'}
 
@@ -444,8 +444,13 @@ def verify(root):
 
 
 def zip_directory(root, destination):
+    destination=destination.resolve()
     with zipfile.ZipFile(destination,'w',zipfile.ZIP_DEFLATED) as z:
         for p in sorted(root.rglob('*')):
+            if p.is_symlink():
+                raise ValueError('Symlinks require an explicit file copy before packaging')
+            if p.resolve()==destination:
+                continue
             if p.is_file():
                 z.write(p,p.relative_to(root).as_posix())
     with zipfile.ZipFile(destination) as z:
@@ -533,6 +538,8 @@ def finalize(output):
             verify(root)
     zip_directory(handoff,output/'handoff.zip')
     split_packages(output)
+    # Include the entire output, while excluding this ZIP itself on every refresh.
+    zip_directory(output,output/'Complete-Archive.zip')
 
 
 def build(paths,output,search_dirs,max_bytes,skip_agents=False):
@@ -647,7 +654,8 @@ To continue, say: "Read START_HERE.md, INDEX.md and FILES_INDEX.md, then open th
         # The destination is new; only move artifacts created in this staging directory.
         stage.rename(output)
     return {**coverage,'unique_files':len(collector.entities),'handoff_zip':str(output/'handoff.zip'),
-            'migration_zip':str(output/'Conversation-Memory.zip')}
+            'migration_zip':str(output/'Conversation-Memory.zip'),
+            'complete_archive_zip':str(output/'Complete-Archive.zip')}
 
 
 def main():
@@ -682,7 +690,7 @@ def main():
             raise ValueError('--max-file-mb must be positive')
         result=build(paths,a.out,a.search_dir,a.max_file_mb*1024*1024,bool(a.sessions_dir))
         # Summaries avoid printing source contents and credentials.
-        print(json.dumps({k:result[k] for k in ('conversations','records','unique_files','handoff_zip','migration_zip')},ensure_ascii=True))
+        print(json.dumps({k:result[k] for k in ('conversations','records','unique_files','handoff_zip','migration_zip','complete_archive_zip')},ensure_ascii=True))
     except (OSError,ValueError,TypeError,KeyError,zipfile.BadZipFile) as error:
         p.exit(1,f'Error: {error}\n')
 
