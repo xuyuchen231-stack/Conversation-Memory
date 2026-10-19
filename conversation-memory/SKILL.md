@@ -70,7 +70,7 @@ python scripts/build_archive.py --finalize /path/to/new-memory
 python scripts/build_archive.py --verify /path/to/new-memory/handoff
 ```
 
-The script creates separate local originals, a portable `handoff.zip`, and a double-layer `Conversation-Memory.zip`. Finalization refreshes both ZIPs, including every conversation's memory notes and current shared preferences. It redacts known credential patterns in supported source text and ZIP contents/metadata. Keep agent-authored notes suitable for sharing; finalization hashes and packages these notes as written. It preserves original bytes locally and marks files needing review rather than quietly dropping them from the portable inventory.
+The script creates separate local originals, a portable `handoff.zip`, a double-layer `Conversation-Memory.zip`, and `Complete-Archive.zip` containing the entire output directory. The complete backup includes `originals/`, `handoff/`, the migration ZIP, the handoff ZIP, and other output files; it excludes itself to prevent recursive nesting. Finalization refreshes all three ZIPs, including every conversation's memory notes and current shared preferences. It redacts known credential patterns in supported source text and ZIP contents/metadata. Keep agent-authored notes suitable for sharing; finalization hashes and packages these notes as written. It preserves original bytes locally and marks files needing review rather than quietly dropping them from the portable inventory.
 
 ## Guide multiple-chat migration
 
@@ -80,6 +80,6 @@ The first receiving chat reads the master plan and lists the new-chat titles, ex
 
 ## Deliver and publish
 
-Deliver `handoff.zip` for the next chat, the local-originals location, conversation/record and unique-file counts, verification results, and task-relevant gaps. For chat environments without skill installation, upload the handoff and paste its continuation prompt.
+Deliver `Complete-Archive.zip` as the complete local backup and `Conversation-Memory.zip` for separate new chats (or `handoff.zip` for one receiving chat), plus the local-originals location, conversation/record and unique-file counts, verification results, and task-relevant gaps. The complete backup contains unredacted originals and is intended for private local storage. Use the portable migration or handoff ZIP when transferring memory to another chat. For chat environments without skill installation, upload the portable package and paste its continuation prompt.
 
 Public repositories contain only reusable skill instructions, scripts, tests, docs, and synthetic examples. Inspect the actual publication list. Keep personal transcripts, file entities, profiles, and memory packages outside the repository. Report publication and monitoring according to actual execution status.
