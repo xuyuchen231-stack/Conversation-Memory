@@ -1,6 +1,6 @@
 # Validation
 
-Version 0.2.0 · 2026-10-19
+Version 0.3.0 · 2026-10-19
 
 ## Automated tests
 
@@ -8,7 +8,7 @@ Version 0.2.0 · 2026-10-19
 python -m unittest discover -s tests -v
 ```
 
-25 integration tests passed on Windows with Python 3.10. They exercise:
+26 integration tests passed on Windows with Python 3.10. They exercise:
 
 - Exact message, Unicode, code and whitespace preservation.
 - Actual attachment and generated-file copying, including extensionless files.
@@ -23,9 +23,15 @@ python -m unittest discover -s tests -v
 - Network-reference reporting without connecting to shares.
 - Previous memory-export exclusion, subagent filtering, malformed-record warnings, overwrite protection, and tamper detection.
 
+- Nested migration packaging: two isolated chats, correct file associations, shared preference propagation, refreshed per-chat memory notes, readable routing plan, inner ZIP integrity and per-file hashes.
+
 ## Independent review
 
 A separate reviewer used synthetic inputs to reproduce and recheck the file, encoding, path and ZIP-metadata fixes. The reviewer also exercised memory-note edits, verification, finalization and ZIP refresh, and checked that an unsupported ZIP compression method preserved the local original with a portable review status. No remaining release blocker was found in that review.
+
+## Multiple-chat forward test
+
+An independent evaluator used two unrelated synthetic chats, four message records, and two actual attachments. After adding per-chat memory notes and shared preferences, finalization produced a master migration package with exactly two inner ZIPs. Each inner ZIP contained only its own records and attachment, the shared preference, its memory notes, and its opening prompt. Plan prompts matched the inner prompts. CLI verification passed for the handoff (20 files), extracted master (5 files), and each extracted inner package (11 files).
 
 ## Local smoke test
 
