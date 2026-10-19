@@ -1,0 +1,3 @@
+{"type":"session_meta","payload":{"id":"example-session","title":"Example project handoff","source":"example","thread_source":"user"}}
+{"timestamp":"2026-10-19T00:00:00Z","type":"response_item","payload":{"type":"message","id":"example-user","role":"user","content":[{"type":"input_text","text":"Use concise, practical English. Preserve the project brief and link it from the handoff."}]}}
+{"timestamp":"2026-10-19T00:00:01Z","type":"response_item","payload":{"type":"message","id":"example-assistant","role":"assistant","content":[{"type":"output_text","text":"The [project brief](project/brief.txt) records the goal and next step. Continue by reviewing the draft against that brief."}]}}
