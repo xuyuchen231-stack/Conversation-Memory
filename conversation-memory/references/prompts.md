@@ -31,3 +31,7 @@ Read START_HERE.md and MIGRATION_PLAN.json in the attached Conversation-Memory.z
 ## Start one migrated chat
 
 I uploaded the inner ZIP for one old conversation. Read START_HERE.md and follow NEW_CHAT_PROMPT.txt. Read its memory notes, source history and relevant files. Continue its latest unresolved task, following documented preferences and current corrections. State any source material you could not read.
+
+## Create a complete local backup
+
+Use $conversation-memory to archive these conversations and actual files. Generate Complete-Archive.zip containing the entire output directory, including originals, handoff, and the portable ZIPs. Keep this complete backup privately. Also provide Conversation-Memory.zip for transferring individual conversations to new chats. Finalize all three ZIPs after writing the memory notes.
