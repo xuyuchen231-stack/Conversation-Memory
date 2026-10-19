@@ -57,6 +57,8 @@ Read the relevant transcripts and collected documents, then add:
 - `PROJECTS_AND_TASKS.md`: current goals, decisions, task status, revisions, and the next action with source references.
 - `GAPS_AND_COMPLETENESS.md`: actual source coverage, warnings, attachment and branch status, and remaining gaps.
 
+For migration into multiple new chats, keep one old conversation per new chat by default. For each `handoff/archive/Sxxx/`, write `MEMORY.md` with its topic, current goal, decisions, latest corrections, unresolved request, relevant files, source references, and a concrete next action. Use descriptive titles in that folder's `manifest.json`; retain the original ID. Shared `STYLE_AND_PREFERENCES.md` should contain only preferences that apply across conversations. Keep project-specific facts in the relevant conversation's `MEMORY.md`. Suggest related-conversation merges only for the user to choose; do not silently merge them.
+
 Update `START_HERE.md` to link these files, `INDEX.md`, and `FILES_INDEX.md`. Include a continuation prompt using [prompt examples](references/prompts.md). The receiving chat reads the entry point and relevant originals, tracking message ranges and file entities actually read.
 
 Demonstrate one realistic follow-up with source references and the supported style choices. Independent evaluation uses only the authorized material needed for its scenario; report the observed result and scope.
@@ -68,7 +70,13 @@ python scripts/build_archive.py --finalize /path/to/new-memory
 python scripts/build_archive.py --verify /path/to/new-memory/handoff
 ```
 
-The script creates separate local originals and a portable `handoff.zip`. It redacts known credential patterns in supported text and ZIP contents/metadata. It preserves original bytes locally and marks files needing review rather than quietly dropping them from the portable inventory.
+The script creates separate local originals, a portable `handoff.zip`, and a double-layer `Conversation-Memory.zip`. Finalization refreshes both ZIPs, including every conversation's memory notes and current shared preferences. It redacts known credential patterns in supported source text and ZIP contents/metadata. Keep agent-authored notes suitable for sharing; finalization hashes and packages these notes as written. It preserves original bytes locally and marks files needing review rather than quietly dropping them from the portable inventory.
+
+## Guide multiple-chat migration
+
+Deliver `Conversation-Memory.zip` for moving separate conversations. It contains `START_HERE.md`, readable and machine-readable migration plans, and `conversations/Sxxx.zip` for each old conversation. Each inner ZIP independently contains that conversation's records, associated portable files, scoped file inventory, memory notes, shared preferences when present, checksums, and `NEW_CHAT_PROMPT.txt`. Shared file entities are copied into every conversation package that references them.
+
+The first receiving chat reads the master plan and lists the new-chat titles, exact ZIP filenames, and full opening prompts. The user manually creates each new chat, uploads its indicated inner ZIP, and pastes its prompt. If the chat cannot extract nested ZIPs, instruct the user to extract the master ZIP locally and upload the inner ZIP directly. Do not imply that one chat automatically creates or populates other chats. Preserve missing-file statuses in each package. Use `handoff.zip` when a single receiving chat should access the whole archive.
 
 ## Deliver and publish
 
