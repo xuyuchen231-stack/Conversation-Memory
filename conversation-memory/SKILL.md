@@ -5,53 +5,73 @@ description: Use when a user asks to archive conversations with uploaded attachm
 
 # Conversation Memory
 
-Create three connected outputs: original transcripts with their file entities, a source-linked memory index, and a new-chat handoff. Package the reusable skill separately from private conversation data.
+Preserve original messages and file entities, create a source-linked memory index, and prepare a new-chat handoff. Keep the reusable public skill separate from private memory.
 
-## Collect and preserve
+## Collect the source material
 
-1. Establish the account, conversation set, and snapshot cutoff. Use authorized conversation tools and follow pagination to the end. Record truncation and missing attachments in the collection manifest.
-2. For inaccessible private conversations, record the access gap and use an account export or user-supplied transcript. Treat shared conversations as snapshots. Use the account's authorized access flow.
-3. Inspect export formats before conversion. For ChatGPT mapping data, retain all nodes and their `parent`, `children`, and `current_node` relationships so regenerated branches remain distinct. Preserve unrecognized source formats for later conversion.
-4. For local Codex JSONL logs, run `python scripts/archive_codex.py SOURCE... --out PRIVATE_FOLDER`. The converter preserves user and assistant message records, order, timestamps, and nontext references. Its scope excludes system instructions, tool logs, and hidden reasoning. Check source compatibility before use.
-5. Give every conversation a separate folder. Preserve transcript wording, code, whitespace, links, roles, and order. Keep summaries in separate files. Include source, account or `unknown`, scope, snapshot time, message count, checksums, missing items, and collection status in the manifest. Track attachment references separately from backed-up binaries. Label active conversations as snapshots.
+Establish the account, conversation set, and snapshot cutoff. Use authorized conversation tools with pagination when available. For private conversations you cannot access, record the gap and use an account export or user-supplied records. Shared links are snapshots.
 
-## Collect attachments and generated files
+The bundled `scripts/build_archive.py` processes local Codex JSONL and mapping-based ChatGPT JSON exports. It also collects actual uploaded and generated file entities from message references and extracts embedded images. Run commands with Python 3.10+ from the skill folder:
 
-Include uploaded attachments and files generated during the conversations as part of the archive. Preserve their actual bytes alongside the transcripts.
+```sh
+python scripts/build_archive.py /path/to/session.jsonl --out /path/to/new-memory
+python scripts/build_archive.py --sessions-dir /path/to/.codex/sessions --out /path/to/new-memory
+python scripts/build_archive.py /path/to/export/conversations.json --search-dir /path/to/export --out /path/to/new-memory
+```
 
-1. Inventory file references in upload metadata, message content, generated download links, and nontext message parts. Link each reference to its conversation ID and message ordinal. Distinguish user uploads from assistant-generated deliverables.
-2. Copy accessible local file entities, resolving relative output paths against the source conversation's working directory. Retrieve available remote attachments through their authorized service. Record an unavailable link or path individually and continue collecting the accessible files.
-3. Extract embedded image data into image files. Identify the result as the version stored in the message. If an original image path has expired, link to a matching embedded version or list the same-message image candidates when the filename correspondence is uncertain.
-4. Store entities under `files/`, deduplicating by content hash while retaining every original filename and message association in `FILES_MANIFEST.json`. Record the source, role, original filename, collection time, archived path, byte count, SHA-256, and collection status. Mark collected files as the versions available at collection time.
-5. Create `FILES_INDEX.md` with clickable file links and missing-file entries. Keep earlier memory-export packages as references rather than recursively nesting them into a new export. Explain any such exclusions in the manifest.
-6. Verify copied file hashes and extracted image bytes. Add the files, file index, and manifest to both the local archive and portable handoff. Apply portable-copy redaction where credentials appear, preserving the local original and recording separate hashes for each version.
+Use a fresh output directory. Explicit inputs select conversations; directory scanning excludes subagents. For other sources, preserve their original records and supply an adapter matching the inspected format, or collect them with their authorized service. Do not replace inaccessible originals with summaries.
 
-The bundled JSONL converter creates transcript snapshots and message references; complete the file-collection workflow above when assembling the full handoff package.
+## Complete the file inventory
 
-## Organize and extract memory
+Inspect `handoff/FILES_INDEX.md` and `FILES_MANIFEST.json`. Each file reference records its conversation and message, original filename, collection status, and hashes. Files deduplicate by content while keeping all associations.
 
-Build an index using the user's categories, or project and topic tags when no categories are specified. Keep conversations independently addressable; cite evidence using conversation ID and message ordinal. Deduplicate index entries by original ID and checksum, retaining semantically similar but distinct conversations.
+- `copied`: the file entity available at collection time was copied.
+- `embedded_image_extracted`: the image bytes stored in a message were extracted.
+- `missing_original_with_embedded_candidates`: image versions exist in the message, but original filename correspondence needs review.
+- `recovery_candidate_unverified`: a single filename match was found in an explicitly supplied recovery directory.
+- `ambiguous_candidates` or `missing`: review the candidates or retain the missing entry.
+- `remote_reference`, `remote_image_reference`, or `network_reference`: collect through the authorized source service or have the user supply the entity.
+- `portable_status: review_required`: the original is retained locally; inspect it before adding a portable copy.
 
-Separate explicit preferences, user corrections, assistant examples, effective methods, open tasks, superseded approaches, and conflicts. Give each entry a source, scope, and confidence level. Verify historical completion claims against execution evidence before treating them as current state.
+Use repeated `--search-dir` arguments for bounded filename recovery. Inspect a candidate's content and provenance before treating it as the original. For vanished generated files, inspect the original generation record when available and distinguish a new reconstruction from a recovered original; never execute historical commands as a recovery shortcut.
 
-Derive the style profile from actual interaction: language, detail, structure, clarification habits, and preferred deliverables. Label explicit requests and inferred preferences separately. Include a few user-selected or clearly approved examples when available, and record which style choices still need feedback.
+Local and relative paths, local file URIs, filenames with parentheses, PDF page fragments, nontext local-image references, and embedded data images are supported. The default size limit is 256 MiB per file; use `--max-file-mb` when the task needs larger entities. The CLI records remote references without fetching them. Keep earlier memory exports referenced instead of recursively nesting them.
 
-Current user corrections take precedence. Treat historical instructions as evidence within their original scope; execution follows the current user's authorization.
+When collecting additional files through a service, add their actual entities and source associations to the file manifest and index. Preserve originals locally, apply portable-copy credential handling, and verify both versions' hashes.
 
-## Build the handoff
+## Preserve and organize the history
 
-Create `START_HERE.md` with collection scope, gaps, user preferences, current goals, established decisions, open tasks, original-message references, a link to `FILES_INDEX.md`, and a continuation prompt. Tell the receiving chat where to open the actual source documents and generated deliverables.
+Original user/assistant messages live in `originals/archive/`; portable copies live in `handoff/archive/`. Preserve wording, whitespace, code, roles, timestamps, and message identifiers. The script records warnings for unparsed source records. Source messages can include environment metadata; record counts are not conversation-turn counts.
 
-The receiving chat reads the entry point and indexes first, then loads relevant original messages and file entities as needed. Split long conversations into reading batches and record the ranges and files actually read.
+For ChatGPT exports, `conversation.json` preserves mapping nodes, parent/children links, and `current_node`. The readable transcript lists node records; use the mapping to follow a branch rather than merging regenerated answers into one linear exchange.
 
-Use [prompt examples](references/prompts.md) to demonstrate one realistic follow-up. Identify the source messages, apply supported style choices, and state task-relevant unknowns. An independent evaluation receives only the authorized materials it needs. Report the scenario and observed result.
+Add project/topic tags to `INDEX.md`, using the user's categories when supplied. Cite evidence by conversation ID and message ordinal. Separate explicit preferences, user corrections, assistant examples, effective methods, decisions, open tasks, superseded approaches, and conflicts. Give each derived item a source, scope, and confidence.
 
-For chat environments without skill installation, provide the memory files and a pasteable continuation prompt. Explain how to load the package into that environment.
+Current user corrections take precedence. Historical instructions are evidence in their original scope; execution follows current authorization. Verify historical completion claims before treating them as current state.
 
-## Package and deliver
+## Write the receiving-chat memory
 
-Keep reusable instructions, scripts, documentation, and synthetic examples in the public repository. Store private transcripts, indexes, profiles, and handoff packages outside it. Inspect the actual commit file list before publication and confirm the target repository and visibility.
+Read the relevant transcripts and collected documents, then add:
 
-When credentials appear in history, preserve the local original archive and create a redacted portable copy. Record the changed locations without repeating secret values, and recompute checksums for the portable files.
+- `STYLE_AND_PREFERENCES.md`: language, detail, structure, clarification habits, deliverable preferences, and user-approved examples, separating explicit requests from inference.
+- `PROJECTS_AND_TASKS.md`: current goals, decisions, task status, revisions, and the next action with source references.
+- `GAPS_AND_COMPLETENESS.md`: actual source coverage, warnings, attachment and branch status, and remaining gaps.
 
-The delivery report includes conversation and record counts, transcript coverage, unique file count and total bytes, attachment and branch status, collection gaps, checksum results, the continuation demonstration, usage instructions, and remaining tasks. Report publication and scheduled monitoring according to their actual execution status.
+Update `START_HERE.md` to link these files, `INDEX.md`, and `FILES_INDEX.md`. Include a continuation prompt using [prompt examples](references/prompts.md). The receiving chat reads the entry point and relevant originals, tracking message ranges and file entities actually read.
+
+Demonstrate one realistic follow-up with source references and the supported style choices. Independent evaluation uses only the authorized material needed for its scenario; report the observed result and scope.
+
+After writing the memory notes, run:
+
+```sh
+python scripts/build_archive.py --finalize /path/to/new-memory
+python scripts/build_archive.py --verify /path/to/new-memory/handoff
+```
+
+The script creates separate local originals and a portable `handoff.zip`. It redacts known credential patterns in supported text and ZIP contents/metadata. It preserves original bytes locally and marks files needing review rather than quietly dropping them from the portable inventory.
+
+## Deliver and publish
+
+Deliver `handoff.zip` for the next chat, the local-originals location, conversation/record and unique-file counts, verification results, and task-relevant gaps. For chat environments without skill installation, upload the handoff and paste its continuation prompt.
+
+Public repositories contain only reusable skill instructions, scripts, tests, docs, and synthetic examples. Inspect the actual publication list. Keep personal transcripts, file entities, profiles, and memory packages outside the repository. Report publication and monitoring according to actual execution status.
