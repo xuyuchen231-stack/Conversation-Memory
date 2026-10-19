@@ -1,80 +1,120 @@
 # Conversation Memory
 
-Archive conversations with their uploaded attachments and generated files, organize them by project, and carry context into a new chat.
+**Version 0.2.0 · Python 3.10+ · Standard library only**
 
-Conversation Memory keeps original transcripts and file entities alongside a searchable index, an evidence-based style profile, decisions, and open tasks. A handoff package gives the next chat a clear starting point, the relevant history, and the documents needed to continue.
+Archive conversations together with their uploaded attachments and generated files. Build an indexed memory package that another chat can read to continue your work and follow your documented preferences.
 
-## Features
+## Use it in a chat
 
-- Preserve individual conversations, message order, code, timestamps, and attachment references.
-- Include accessible uploaded attachments and generated Word, PDF, LaTeX, ZIP, image, and other files.
-- Extract images embedded in message records and connect files to their source messages.
-- Deduplicate file entities by content hash and provide a clickable file index.
-- Organize history by project and topic while keeping original transcripts intact.
-- Capture preferences, corrections, decisions, and working patterns with source references.
-- Generate a `START_HERE.md` entry point and reusable continuation prompts.
-- Export local Codex conversation logs with file hashes and per-session manifests.
-- Keep private memory packages separate from the reusable skill.
-
-## Install
-
-Copy the `conversation-memory` folder into your skills directory. For a local Codex installation:
+Copy the `conversation-memory` folder to `~/.codex/skills/conversation-memory/`, then open a new chat and say:
 
 ```text
-~/.codex/skills/conversation-memory/
+Use $conversation-memory to archive these conversations with their uploaded attachments and generated files. Organize them by project, capture my preferences and corrections with source references, and create a new-chat handoff package.
 ```
 
-Open a new chat and invoke the skill:
+Provide the conversations, local session files, or an extracted ChatGPT export. The skill collects records and files, prepares a style and task handoff, and verifies the package.
+
+In the receiving chat, upload `handoff.zip` and say:
 
 ```text
-Use $conversation-memory to archive these conversations and create a new-chat handoff package.
+Read START_HERE.md, INDEX.md and FILES_INDEX.md. Open the original messages and files relevant to my task, follow my documented preferences and latest corrections, and continue with: [your task].
 ```
 
-## Archive local Codex logs
+## What is included
+
+- Original user and assistant messages, code, timestamps, and source references.
+- Uploaded files and generated documents available from the supplied records.
+- Images embedded in messages, exported as image files.
+- A file index with content hashes, original filenames, source messages, and collection status.
+- ChatGPT mapping nodes and parent/children relationships, preserving regenerated branches.
+- Separate local originals and a portable handoff with known credential patterns redacted.
+- Missing-file reports and bounded searches for relocated file candidates.
+- A verifier and a finalizer for agent-authored memory notes.
+
+## Try the included example
+
+From the repository root:
 
 ```sh
-python conversation-memory/scripts/archive_codex.py /path/to/session.jsonl --out /path/to/private-memory
+python conversation-memory/scripts/build_archive.py examples/session.jsonl --out ../memory-demo
+python conversation-memory/scripts/build_archive.py --verify ../memory-demo/handoff
 ```
 
-Pass multiple source files to archive several sessions. Each session receives its own transcript, message records, and manifest. The converter handles local Codex JSONL logs; the skill also guides collection from accessible conversations and account exports.
+Open `../memory-demo/handoff/START_HERE.md`, then `FILES_INDEX.md`. The example includes a real text attachment and a preference stated in the original messages.
 
-## Include attachments and generated files
+## Build from your records
 
-The complete archive contains the conversations and the actual files used or produced in them. The skill collects available file entities into `files/`, creates `FILES_INDEX.md`, and records source messages, filenames, sizes, hashes, and collection status in `FILES_MANIFEST.json`.
+### Local Codex sessions
 
-When an image's original path has expired, the skill extracts the image version embedded in the conversation. Missing files and uncertain image matches appear in the file index. Existing memory exports remain referenced to keep each new package free of nested archive copies.
+```sh
+python conversation-memory/scripts/build_archive.py --sessions-dir /path/to/.codex/sessions --out /path/to/new-memory
+```
 
-The JSONL command above exports transcript snapshots. File collection is the next step in the skill's full archive workflow.
+On Windows, for example:
 
-## Continue in a new chat
+```powershell
+python .\conversation-memory\scriptsuild_archive.py --sessions-dir "$env:USERPROFILE\.codex\sessions" --out "D:\Memory\snapshot-001"
+```
 
-Upload the handoff package and use this prompt:
+The directory scan skips subagent sessions. You can also pass one or more JSONL paths directly to select individual conversations.
+
+### ChatGPT export
+
+Extract the export, then use its mapping-based `conversations.json`:
+
+```sh
+python conversation-memory/scripts/build_archive.py /path/to/export/conversations.json --search-dir /path/to/export --out /path/to/new-memory
+```
+
+The importer supports a conversation list, a `conversations` list wrapper, or a single mapping-based conversation. Branch topology and the current node are preserved in `conversation.json`.
+
+### Find relocated files
+
+```sh
+python conversation-memory/scripts/build_archive.py session.jsonl --search-dir /path/to/Downloads --search-dir /path/to/project/outputs --out /path/to/new-memory
+```
+
+Search is limited to the directories you provide. A unique filename match is included as an **unverified recovery candidate**; multiple matches are listed for review. A missing file remains listed as missing. Historical commands are never executed to recreate an original.
+
+Local paths, relative paths, local `file://` links, and embedded images are processed directly. Remote references are recorded for collection through their service; the CLI does not connect to accounts or network shares. The default limit is 256 MiB per file; adjust it with `--max-file-mb`.
+
+## Output
 
 ```text
-Read START_HERE.md, the conversation index, and FILES_INDEX.md. Open the original messages and actual files relevant to my task, follow my documented preferences and corrections, and continue from the latest decisions and open tasks.
-
-My task: [describe what to continue]
+new-memory/
+  originals/                 Original records and file entities; keep locally
+  handoff/
+    START_HERE.md
+    INDEX.md
+    FILES_INDEX.md
+    FILES_MANIFEST.json
+    COVERAGE.json
+    SHA256SUMS.json
+    archive/S001/
+      messages.json
+      transcript.md
+      manifest.json
+    files/content-hash/filename.ext
+  handoff.zip                Upload this to the receiving chat
 ```
 
-See [prompt examples](conversation-memory/references/prompts.md) for archiving, continuation, and style review.
+The skill adds source-linked preferences, project decisions, open tasks, and relevant collection gaps to the handoff after reading the transcripts. It then refreshes the checksums and ZIP:
 
-## Package layout
-
-```text
-START_HERE.md
-INDEX.md
-STYLE_AND_PREFERENCES.md
-PROJECTS_AND_TASKS.md
-GAPS_AND_COMPLETENESS.md
-FILES_INDEX.md
-FILES_MANIFEST.json
-files/
-  content-hash/
-    original-filename.ext
-archive/
-  session/
-    messages.source.jsonl
-    messages.json
-    transcript.md
-    manifest.json
+```sh
+python conversation-memory/scripts/build_archive.py --finalize /path/to/new-memory
+python conversation-memory/scripts/build_archive.py --verify /path/to/new-memory/handoff
 ```
+
+Use a new output directory for each snapshot. Identical conversation IDs and content hashes are deduplicated; changed revisions remain separate. File entities are deduplicated by content while every filename and message association stays in the manifest.
+
+Known credential patterns are handled in UTF-8, BOM-marked UTF-16, and supported ZIP members and metadata. Files requiring additional inspection stay in `originals/` and receive a review status in the portable manifest. Review image or opaque binary contents before sharing sensitive material.
+
+The older `archive_codex.py` command remains available for transcript-only exports.
+
+## Tests
+
+```sh
+python -m unittest discover -s tests -v
+```
+
+See [validation results](VALIDATION.md) and [prompt examples](conversation-memory/references/prompts.md).
