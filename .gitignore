@@ -1,6 +1,11 @@
 private-memory/
 raw/
 *.jsonl
+!examples/*.jsonl
 *.zip
 __pycache__/
 *.pyc
+originals/
+handoff/
+memory-demo/
+.conversation-memory-*/
